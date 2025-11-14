@@ -1,18 +1,89 @@
 name: Test Orchestrator
 
-# Allows a “Run workflow” button in the Actions tab
+# Manual trigger from the Actions tab
 on:
   workflow_dispatch: {}
 
 jobs:
   run-tests:
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
 
-      # ---- your tests go here ----
-      - name: Run test for repo 
-        run: |
-          echo "Running tests..."
-          # replace this line with your actual test command(s)
+    steps:
+    - name: Checkout orchestrator repo
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    # ---------- Unit tests repo ----------
+    - name: Checkout unit tests repo
+      uses: actions/checkout@v4
+      with:
+        repository: OWNER_HERE/f24-testing-units-michael-d-abraham
+        token: ${{ secrets.PAT_TOKEN }}
+        path: units
+
+    - name: Run unit tests
+      run: |
+        cd units
+        python -m unittest discover
+
+    # ---------- System tests repo ----------
+    - name: Checkout system tests repo
+      uses: actions/checkout@v4
+      with:
+        repository: OWNER_HERE/testing-systems-michael-d-abraham
+        token: ${{ secrets.PAT_TOKEN }}
+        path: systems
+
+    - name: Install pytest and plugins for system tests
+      run: |
+        cd systems
+        python -m pip install --upgrade pip
+        pip install pytest pytest-describe
+
+    - name: Verify database seed file exists (systems)
+      run: |
+        cd systems
+        ls -la empty_squirrel_db.db
+
+    - name: Run system tests
+      run: |
+        cd systems
+        pytest
+
+    # ---------- Behave tests repo ----------
+    - name: Checkout behave tests repo
+      uses: actions/checkout@v4
+      with:
+        repository: OWNER_HERE/testing-with-behave-michael-d-abraham
+        token: ${{ secrets.PAT_TOKEN }}
+        path: behave
+
+    - name: Install Python dependencies for Behave
+      run: |
+        cd behave
+        python -m pip install --upgrade pip
+        pip install behave==1.2.6 selenium==3.141.0 behave-webdriver==0.3.1 "urllib3<2.0"
+
+    - name: Install Google Chrome (for Behave tests)
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y wget gnupg
+        wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+        echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
+        sudo apt-get update
+        sudo apt-get install -y google-chrome-stable
+
+    - name: Setup ChromeDriver (for Behave tests)
+      uses: nanasess/setup-chromedriver@v2
+
+    - name: Run Behave tests (all suites)
+      run: |
+        cd behave
+        cd isitchristmas && python -m behave
+        cd ../peppers-ghost && python -m behave
+        cd ../coffee-cart && python -m behave
+        cd ../nights-on-earth && python -m behave
