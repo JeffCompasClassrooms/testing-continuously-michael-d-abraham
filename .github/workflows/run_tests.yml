@@ -21,7 +21,7 @@ jobs:
     - name: Checkout unit tests repo
       uses: actions/checkout@v4
       with:
-        repository: OWNER_HERE/f24-testing-units-michael-d-abraham
+        repository: se3150/f24-testing-units-michael-d-abraham
         token: ${{ secrets.PAT_TOKEN }}
         path: units
 
@@ -34,7 +34,7 @@ jobs:
     - name: Checkout system tests repo
       uses: actions/checkout@v4
       with:
-        repository: OWNER_HERE/testing-systems-michael-d-abraham
+        repository: JeffCompasClassrooms/testing-systems-michael-d-abraham
         token: ${{ secrets.PAT_TOKEN }}
         path: systems
 
@@ -58,7 +58,7 @@ jobs:
     - name: Checkout behave tests repo
       uses: actions/checkout@v4
       with:
-        repository: OWNER_HERE/testing-with-behave-michael-d-abraham
+        repository: JeffCompasClassrooms/testing-with-behave-michael-d-abraham
         token: ${{ secrets.PAT_TOKEN }}
         path: behave
 
